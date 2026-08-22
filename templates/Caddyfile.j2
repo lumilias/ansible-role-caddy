@@ -7,6 +7,7 @@
 {% if option == 'db_path' and config[option] is not string %}
 {% for value in config[option] %}        {{ option }} {{ value }}
 {% endfor %}
+{% elif option == 'blocked_message' %}        {{ option }} "{{ config[option] | replace('"', '\\"') }}"
 {% elif config[option] is string or config[option] is not iterable %}        {{ option }} {{ config[option] }}
 {% else %}
     {{ option }} {{ config[option] | join(' ') }}

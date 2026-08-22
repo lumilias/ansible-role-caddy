@@ -4,6 +4,15 @@ caddyfile_path: /etc/caddy
 caddy_user: caddy
 caddy_group: caddy
 caddy_log_path: /var/log/caddy
+caddy_required_plugins:
+  - package: github.com/caddy-dns/cloudflare
+    module: dns.providers.cloudflare
+  - package: github.com/caddyserver/transform-encoder
+    module: caddy.logging.encoders.transform
+  - package: github.com/mholt/caddy-ratelimit
+    module: http.handlers.rate_limit
+  - package: github.com/anujc4/caddy-geoblock
+    module: http.handlers.geoblock
 caddy_build_dependencies:
   Debian:
     - build-essential

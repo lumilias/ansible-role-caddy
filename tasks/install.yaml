@@ -45,16 +45,25 @@
     PATH: "{{ ansible_env.PATH }}:/usr/local/go/bin:{{ lookup('env', 'HOME') }}/go/bin"
     GOPATH: "{{ lookup('env', 'HOME') }}/go"
 
+- name: check installed caddy modules
+  ansible.builtin.command:
+    cmd: "{{ caddy_binary_path }} list-modules"
+  register: caddy_modules
+  changed_when: false
+  failed_when: false
+
+- name: identify missing caddy modules
+  ansible.builtin.set_fact:
+    caddy_missing_modules: "{{ caddy_required_plugins | map(attribute='module') | difference(caddy_modules.stdout_lines | default([])) }}"
+
 - name: build caddy with required plugins
   ansible.builtin.command:
     cmd: >-
       {{ lookup('env', 'HOME') }}/go/bin/xcaddy build
       --output {{ caddy_binary_path }}
-      --with github.com/caddy-dns/cloudflare
-      --with github.com/caddyserver/transform-encoder
-      --with github.com/mholt/caddy-ratelimit
-      --with github.com/anujc4/caddy-geoblock
-    creates: "{{ caddy_binary_path }}"
+      --with {{ caddy_required_plugins | map(attribute='package') | join(' --with ') }}
+  when: caddy_modules.rc != 0 or caddy_missing_modules | length > 0
+  notify: restart caddy
   environment:
     PATH: "{{ ansible_env.PATH }}:/usr/local/go/bin:{{ lookup('env', 'HOME') }}/go/bin"
     GOPATH: "{{ lookup('env', 'HOME') }}/go"

@@ -2,23 +2,23 @@
 
 - name: install build dependencies for xcaddy
   ansible.builtin.package:
-    name: "{{ caddy_build_dependencies[ansible_os_family] | default(caddy_build_dependencies['Default']) }}"
+    name: "{{ caddy_build_dependencies[ansible_facts['os_family']] | default(caddy_build_dependencies['Default']) }}"
     state: present
     update_cache: true
 
 - name: Install geoipupdate DEB directly from GitHub
   ansible.builtin.apt:
-    deb: "https://github.com/maxmind/geoipupdate/releases/download/v{{ geoip_version }}/geoipupdate_{{ geoip_version }}_linux_{{ ansible_architecture | replace('x86_64', 'amd64') | replace('aarch64', 'arm64') }}.deb"
+    deb: "https://github.com/maxmind/geoipupdate/releases/download/v{{ geoip_version }}/geoipupdate_{{ geoip_version }}_linux_{{ ansible_facts['architecture'] | replace('x86_64', 'amd64') | replace('aarch64', 'arm64') }}.deb"
     state: present
     update_cache: true
-  when: ansible_os_family == 'Debian'
+  when: ansible_facts['os_family'] == 'Debian'
 
 - name: Install geoipupdate RPM directly from GitHub
   ansible.builtin.yum:
-    name: "https://github.com/maxmind/geoipupdate/releases/download/v{{ geoip_version }}/geoipupdate_{{ geoip_version }}_linux_{{ ansible_architecture | replace('x86_64', 'amd64') | replace('aarch64', 'arm64') }}.rpm"
+    name: "https://github.com/maxmind/geoipupdate/releases/download/v{{ geoip_version }}/geoipupdate_{{ geoip_version }}_linux_{{ ansible_facts['architecture'] | replace('x86_64', 'amd64') | replace('aarch64', 'arm64') }}.rpm"
     state: present
     disable_gpg_check: true
-  when: ansible_os_family == 'RedHat'
+  when: ansible_facts['os_family'] == 'RedHat'
 
 - name: Deploy GeoIP configuration file
   ansible.builtin.copy:
@@ -39,7 +39,7 @@
 
 - name: Install cron (provides crontab)
   ansible.builtin.package:
-    name: "{{ 'cronie' if ansible_os_family == 'RedHat' else 'cron' }}"
+    name: "{{ 'cronie' if ansible_facts['os_family'] == 'RedHat' else 'cron' }}"
     state: present
 
 - name: Schedule weekly GeoIP database updates
@@ -55,7 +55,7 @@
     cmd: go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
     creates: "{{ lookup('env', 'HOME') }}/go/bin/xcaddy"
   environment:
-    PATH: "{{ ansible_env.PATH }}:/usr/local/go/bin:{{ lookup('env', 'HOME') }}/go/bin"
+    PATH: "{{ ansible_facts['env']['PATH'] }}:/usr/local/go/bin:{{ lookup('env', 'HOME') }}/go/bin"
     GOPATH: "{{ lookup('env', 'HOME') }}/go"
 
 - name: check installed caddy modules
@@ -78,7 +78,7 @@
   when: caddy_modules.rc != 0 or caddy_missing_modules | length > 0
   notify: restart caddy
   environment:
-    PATH: "{{ ansible_env.PATH }}:/usr/local/go/bin:{{ lookup('env', 'HOME') }}/go/bin"
+    PATH: "{{ ansible_facts['env']['PATH'] }}:/usr/local/go/bin:{{ lookup('env', 'HOME') }}/go/bin"
     GOPATH: "{{ lookup('env', 'HOME') }}/go"
 
 - name: ensure caddy binary is executable

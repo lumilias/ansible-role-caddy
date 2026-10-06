@@ -37,6 +37,11 @@
   register: geoip_result
   changed_when: "'Up to date' not in geoip_result.stdout"
 
+- name: Install cron (provides crontab)
+  ansible.builtin.package:
+    name: "{{ 'cronie' if ansible_os_family == 'RedHat' else 'cron' }}"
+    state: present
+
 - name: Schedule weekly GeoIP database updates
   ansible.builtin.cron:
     name: "Weekly MaxMind GeoIP Update"

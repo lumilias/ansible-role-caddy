@@ -1,6 +1,7 @@
 # ansible-role-caddy
 
-Install and configure Caddy reverse proxy programatically. Tested on Ubuntu 24.04.
+Install and configure Caddy reverse proxy programatically. Supports Debian-based
+and RHEL-based systems; tested on Ubuntu 24.04.
 
 ## Variables
 TLS providers
@@ -47,4 +48,3 @@ caddy_geoblock:
 The geoblock configuration is applied to every endpoint. Options that accept
 multiple values, such as `db_path`, are YAML lists and produce one directive
 per value.
-

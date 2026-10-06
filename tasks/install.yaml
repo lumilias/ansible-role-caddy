@@ -6,11 +6,19 @@
     state: present
     update_cache: true
 
+- name: Install geoipupdate DEB directly from GitHub
+  ansible.builtin.apt:
+    deb: "https://github.com/maxmind/geoipupdate/releases/download/v{{ geoip_version }}/geoipupdate_{{ geoip_version }}_linux_{{ ansible_architecture | replace('x86_64', 'amd64') | replace('aarch64', 'arm64') }}.deb"
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+
 - name: Install geoipupdate RPM directly from GitHub
-  ansible.builtin.dnf:
-    name: "https://github.com/maxmind/geoipupdate/releases/download/v{{ geoip_version }}/geoipupdate_{{ geoip_version }}_linux_arm64.rpm"
+  ansible.builtin.yum:
+    name: "https://github.com/maxmind/geoipupdate/releases/download/v{{ geoip_version }}/geoipupdate_{{ geoip_version }}_linux_{{ ansible_architecture | replace('x86_64', 'amd64') | replace('aarch64', 'arm64') }}.rpm"
     state: present
     disable_gpg_check: true
+  when: ansible_os_family == 'RedHat'
 
 - name: Deploy GeoIP configuration file
   ansible.builtin.copy:

@@ -91,7 +91,7 @@
 - name: restore SELinux context on caddy binary
   ansible.builtin.command:
     cmd: restorecon -v "{{ caddy_binary_path }}"
-  when: ansible_selinux.status | default(false) and ansible_selinux.mode | default('') != 'disabled'
+  when: ansible_facts['selinux']['status'] | default('disabled') == 'enabled'
   changed_when: true
 
 - name: Ensure caddy group exists

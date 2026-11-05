@@ -58,6 +58,21 @@
     PATH: "{{ ansible_facts['env']['PATH'] }}:/usr/local/go/bin:{{ lookup('env', 'HOME') }}/go/bin"
     GOPATH: "{{ lookup('env', 'HOME') }}/go"
 
+- name: check latest caddy release
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/caddyserver/caddy/releases/latest
+    return_content: true
+    status_code: 200
+  register: caddy_latest_release
+  changed_when: false
+
+- name: check installed caddy version
+  ansible.builtin.command:
+    cmd: "{{ caddy_binary_path }} version"
+  register: caddy_version
+  changed_when: false
+  failed_when: false
+
 - name: check installed caddy modules
   ansible.builtin.command:
     cmd: "{{ caddy_binary_path }} list-modules"
@@ -75,7 +90,10 @@
       {{ lookup('env', 'HOME') }}/go/bin/xcaddy build
       --output {{ caddy_binary_path }}
       --with {{ caddy_required_plugins | map(attribute='package') | join(' --with ') }}
-  when: caddy_modules.rc != 0 or caddy_missing_modules | length > 0
+  when: >-
+    caddy_version.rc != 0 or
+    (caddy_version.stdout | regex_search('^v[^ ]+')) != caddy_latest_release.json.tag_name or
+    caddy_missing_modules | length > 0
   notify: restart caddy
   environment:
     PATH: "{{ ansible_facts['env']['PATH'] }}:/usr/local/go/bin:{{ lookup('env', 'HOME') }}/go/bin"
